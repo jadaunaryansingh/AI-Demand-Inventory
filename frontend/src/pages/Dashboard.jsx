@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle, Activity, BarChart2, TrendingUp, Database, Package } from 'lucide-react';
 import axios from 'axios';
+import { getApiBaseUrl } from '../apiConfig.js';
 
-const BACKEND_URL = 'http://localhost:8000';
+const BACKEND_URL = getApiBaseUrl();
 
 const KpiCard = ({ title, value, subtitle, icon: Icon, colorClass, glowClass, delay = 0 }) => (
   <motion.div

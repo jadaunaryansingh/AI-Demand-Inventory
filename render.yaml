@@ -1,0 +1,31 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+#
+# Deploy: Dashboard → New → Blueprint → connect this repo → apply render.yaml
+#
+# After first deploy:
+# 1) Copy the Python service URL (e.g. https://ai-demand-inventory-api.onrender.com).
+# 2) In the static site → Environment → set VITE_API_URL to that URL (no trailing slash).
+# 3) Clear build cache & redeploy the static site so Vite embeds the API origin.
+
+services:
+  - type: web
+    name: ai-demand-inventory-api
+    runtime: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt && python init_db.py
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /
+
+  - type: web
+    name: ai-demand-inventory-ui
+    runtime: static
+    buildCommand: cd frontend && npm ci && npm run build
+    staticPublishPath: ./frontend/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        sync: false

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import sqlite3
@@ -8,6 +8,14 @@ import pandas as pd
 from datetime import datetime
 
 app = FastAPI(title="AI Demand Inventory API")
+
+@app.get("/", include_in_schema=False)
+async def root():
+    return {"status": "AI Demand Inventory API is running", "docs": "/docs"}
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return Response(status_code=204)
 
 app.add_middleware(
     CORSMiddleware,

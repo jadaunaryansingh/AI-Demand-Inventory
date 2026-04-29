@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, Cpu, AlertCircle, ChevronRight } from 'lucide-react';
 import axios from 'axios';
+import { getApiBaseUrl } from '../apiConfig.js';
 
-const BACKEND_URL = 'http://localhost:8000';
+const BACKEND_URL = getApiBaseUrl();
 
 const Predictor = () => {
   const [form, setForm] = useState({ store: 1, dept: 1, year: new Date().getFullYear(), month: new Date().getMonth() + 1, week: 1 });

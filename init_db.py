@@ -23,6 +23,18 @@ if 'isholiday' in df.columns:
     df['isholiday'] = df['isholiday'].astype(int)
 df.to_sql('sales', conn, if_exists='append', index=False)
 
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS prediction_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        store INTEGER NOT NULL,
+        dept INTEGER NOT NULL,
+        date TEXT NOT NULL,
+        weekly_sales REAL,
+        predicted_sales REAL NOT NULL,
+        isholiday INTEGER NOT NULL DEFAULT 0
+    )
+""")
+
 conn.commit()
 conn.close()
 

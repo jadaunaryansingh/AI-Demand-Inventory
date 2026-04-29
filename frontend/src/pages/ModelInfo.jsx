@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Brain, Award, Layers, GitBranch } from 'lucide-react';
 import axios from 'axios';
+import { getApiBaseUrl } from '../apiConfig.js';
 
-const BACKEND_URL = 'http://localhost:8000';
+const BACKEND_URL = getApiBaseUrl();
 
 const ModelInfo = () => {
   const [info, setInfo] = useState(null);
