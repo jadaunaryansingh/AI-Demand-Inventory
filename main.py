@@ -1,5 +1,9 @@
+from pathlib import Path
+
 from fastapi import FastAPI, HTTPException, Query, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import sqlite3
 import numpy as np
@@ -9,12 +13,22 @@ from datetime import datetime
 
 app = FastAPI(title="AI Demand Inventory API")
 
+_FRONTEND_DIST = Path(__file__).resolve().parent / "frontend" / "dist"
+
+
 @app.get("/", include_in_schema=False)
 async def root():
+    index = _FRONTEND_DIST / "index.html"
+    if _FRONTEND_DIST.is_dir() and index.is_file():
+        return FileResponse(index)
     return {"status": "AI Demand Inventory API is running", "docs": "/docs"}
+
 
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
+    ico = _FRONTEND_DIST / "favicon.ico"
+    if ico.is_file():
+        return FileResponse(ico)
     return Response(status_code=204)
 
 app.add_middleware(
@@ -334,3 +348,23 @@ async def get_model_info():
         ],
         "feature_importance": fi_list
     }
+
+
+_assets_dir = _FRONTEND_DIST / "assets"
+if _FRONTEND_DIST.is_dir() and _assets_dir.is_dir():
+    app.mount("/assets", StaticFiles(directory=str(_assets_dir)), name="vite_assets")
+
+if _FRONTEND_DIST.is_dir() and (_FRONTEND_DIST / "index.html").is_file():
+
+    @app.get("/{spa_full_path:path}", include_in_schema=False)
+    async def spa_fallback(spa_full_path: str):
+        if spa_full_path.startswith("api/"):
+            raise HTTPException(status_code=404)
+        candidate = (_FRONTEND_DIST / spa_full_path).resolve()
+        try:
+            candidate.relative_to(_FRONTEND_DIST.resolve())
+        except ValueError:
+            raise HTTPException(status_code=404)
+        if candidate.is_file():
+            return FileResponse(candidate)
+        return FileResponse(_FRONTEND_DIST / "index.html")

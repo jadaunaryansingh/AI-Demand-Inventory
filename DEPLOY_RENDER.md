@@ -1,29 +1,33 @@
-# Deploy on Render
+# Deploy on Render (single service)
 
-This repo includes a [Render Blueprint](https://render.com/docs/infrastructure-as-code) file: `render.yaml`.
+One **Web Service** runs FastAPI: REST API under `/api/...`, Swagger at `/docs`, and the React app at `/` (with client-side routes like `/dashboard`).
 
-## What gets deployed
+## Blueprint
 
-1. **ai-demand-inventory-api** — Python web service: FastAPI + `uvicorn`, SQLite seeded from `data/sales.csv` during build (`init_db.py`).
-2. **ai-demand-inventory-ui** — Static site: Vite production build from `frontend/`.
+1. Push this repo to GitHub (or GitLab/Bitbucket).
+2. [Render Dashboard](https://dashboard.render.com) → **New** → **Blueprint**.
+3. Select the repo; confirm `render.yaml` creates **one** service: `ai-demand-inventory`.
+4. Deploy.
 
-## Steps
+Build uses **`Dockerfile`**: Node builds `frontend/`, Python installs deps, `init_db.py` seeds SQLite, image runs `uvicorn` on `$PORT`.
 
-1. Push the repository to GitHub (or GitLab/Bitbucket supported by Render).
-2. In [Render Dashboard](https://dashboard.render.com) → **New** → **Blueprint**.
-3. Connect the repo and confirm `render.yaml` is detected; apply the blueprint.
-4. Wait for the **API** service to go live; open its URL and check `/docs` or `/`.
-5. Open the **static site** service → **Environment** → add:
-   - `VITE_API_URL` = your API origin, e.g. `https://ai-demand-inventory-api.onrender.com` (no trailing slash).
-6. **Manual Deploy** → **Clear build cache & deploy** on the static site so the build picks up `VITE_API_URL`.
+## Environment
 
-`render.yaml` already configures an SPA **rewrite** (`/*` → `/index.html`) so React Router paths like `/dashboard` work.
+- **No `VITE_API_URL` required** for single deploy: the production build calls `/api/...` on the same host.
 
-## Large model files
+## Local “single service” check
 
-`models/demand_model_advanced.pkl` is large. If Git rejects the push (>100 MB), use [Git LFS](https://git-lfs.com/) for that file or host the artifact in object storage and download it in `buildCommand` (advanced).
+```bash
+cd frontend
+npm ci
+npm run build
+cd ..
+python init_db.py
+uvicorn main:app --host 0.0.0.0 --port 8000
+```
 
-## Local parity
+Open `http://127.0.0.1:8000/` for the UI and `http://127.0.0.1:8000/docs` for the API.
 
-- Backend: `uvicorn main:app --host 0.0.0.0 --port 8000`
-- Frontend: `cd frontend && npm run dev` (uses `http://localhost:8000` when `VITE_API_URL` is unset)
+## Large model file
+
+If `models/demand_model_advanced.pkl` is too large for Git, use [Git LFS](https://git-lfs.com/) or another artifact strategy before the Docker build can succeed on Render.
